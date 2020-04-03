@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"go/build"
+	"path/filepath"
 	"text/template"
 
 	"os"
@@ -32,94 +34,6 @@ type Controller struct {
 	Name      string
 	TitleName string
 }
-
-const templateStr string = `
-package controllers
-
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"net/http"
-)
-
-type create{{.TitleName}}Input struct {
-}
-
-type update{{.TitleName}}Input struct {
-}
-
-
-// Find{{.TitleName}} is get all {{.Name}}s
-func Find{{.TitleName}}(c *gin.Context) {
-    db := c.MustGet("db").(*gorm.DB)
-
-	var {{.Name}}s []models.{{.TitleName}}
-	db.Find(&{{.Name}}s)
-
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}s})
-}
-
-// Create{{.TitleName}} is create a {{.Name}}
-func Create{{.TitleName}}(c *gin.Context) {
-
-	var input create{{.TitleName}}Input
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": "data"})
-}
-
-// Find{{.TitleName}} is find a {{.Name}}
-func Find{{.TitleName}}(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}})
-}
-
-// Update{{.TitleName}} is update a {{.Name}}
-func Update{{.TitleName}}(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
-	var input update{{.TitleName}}Input
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	db.Model(&{{.Name}}).Updates(input)
-
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}})
-}
-
-// Delete{{.TitleName}} is delete a {{.Name}}
-func Delete{{.TitleName}}(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-		return
-	}
-
-	db.Delete(&{{.Name}})
-
-	c.JSON(http.StatusOK, gin.H{"data": true})
-}
-`
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
@@ -145,8 +59,14 @@ func checkErr(e error) {
 func convControllerTemplateToString(controller Controller) string {
 	var tpl bytes.Buffer
 
-	// t := template.Must(template.ParseGlob("./templates/controller.tmpl"))
-	t := template.Must(template.New("controller").Parse(templateStr))
+	importPath := "github.com/gmlwo530/gimlet"
+	p, err := build.Default.Import(importPath, "", build.FindOnly)
+
+	checkErr(err)
+	templateDir := filepath.Join(p.Dir, "templates")
+
+	t := template.Must(template.ParseGlob(templateDir + "/controller.tmpl"))
+
 	t.Execute(&tpl, controller)
 
 	return tpl.String()

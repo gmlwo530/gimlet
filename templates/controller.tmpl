@@ -20,7 +20,7 @@ func Find{{.TitleName}}(c *gin.Context) {
 	var {{.Name}}s []models.{{.TitleName}}
 	db.Find(&{{.Name}}s)
 
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}s})
+	c.JSON(http.StatusOK, {{.Name}}s)
 }
 
 // Create{{.TitleName}} is create a {{.Name}}
@@ -32,7 +32,9 @@ func Create{{.TitleName}}(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": "data"})
+	{{.Name}} := models.{{.TitleName}}{}
+
+	c.JSON(http.StatusOK, {{.Name}})
 }
 
 // Find{{.TitleName}} is find a {{.Name}}
@@ -45,7 +47,7 @@ func Find{{.TitleName}}(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}})
+	c.JSON(http.StatusOK, {{.Name}})
 }
 
 // Update{{.TitleName}} is update a {{.Name}}
@@ -66,7 +68,7 @@ func Update{{.TitleName}}(c *gin.Context) {
 
 	db.Model(&{{.Name}}).Updates(input)
 
-	c.JSON(http.StatusOK, gin.H{"data": {{.Name}}})
+	c.JSON(http.StatusOK, {{.Name}})
 }
 
 // Delete{{.TitleName}} is delete a {{.Name}}
@@ -81,5 +83,5 @@ func Delete{{.TitleName}}(c *gin.Context) {
 
 	db.Delete(&{{.Name}})
 
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	c.JSON(http.StatusOK, {{.Name}})
 }
