@@ -13,17 +13,17 @@ type update{{.TitleName}}Input struct {
 }
 
 
-// Find{{.TitleName}} is get all {{.Name}}s
+// Find{{.TitleName}} is get all {{.SingularName}}
 func Find{{.TitleName}}(c *gin.Context) {
     db := c.MustGet("db").(*gorm.DB)
 
-	var {{.Name}}s []models.{{.TitleName}}
-	db.Find(&{{.Name}}s)
+	var {{.Name}} []models.{{.TitleName}}
+	db.Find(&{{.Name}})
 
-	c.JSON(http.StatusOK, {{.Name}}s)
+	c.JSON(http.StatusOK, {{.Name}})
 }
 
-// Create{{.TitleName}} is create a {{.Name}}
+// Create{{.TitleName}} is create a {{.SingularName}}
 func Create{{.TitleName}}(c *gin.Context) {
 
 	var input create{{.TitleName}}Input
@@ -32,30 +32,30 @@ func Create{{.TitleName}}(c *gin.Context) {
 		return
 	}
 
-	{{.Name}} := models.{{.TitleName}}{}
+	{{.SingularName}} := models.{{.TitleName}}{}
 
-	c.JSON(http.StatusOK, {{.Name}})
+	c.JSON(http.StatusOK, {{.SingularName}})
 }
 
-// Find{{.TitleName}} is find a {{.Name}}
+// Find{{.TitleName}} is find a {{.SingularName}}
 func Find{{.TitleName}}(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
+	var {{.SingularName}} models.{{.TitleName}}
+	if err := db.Where("id = ?", c.Param("id")).First(&{{.SingularName}}).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
-	c.JSON(http.StatusOK, {{.Name}})
+	c.JSON(http.StatusOK, {{.SingularName}})
 }
 
-// Update{{.TitleName}} is update a {{.Name}}
+// Update{{.TitleName}} is update a {{.SingularName}}
 func Update{{.TitleName}}(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
+	var {{.SingularName}} models.{{.TitleName}}
+	if err := db.Where("id = ?", c.Param("id")).First(&{{.SingularName}}).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
@@ -66,22 +66,22 @@ func Update{{.TitleName}}(c *gin.Context) {
 		return
 	}
 
-	db.Model(&{{.Name}}).Updates(input)
+	db.Model(&{{.SingularName}}).Updates(input)
 
-	c.JSON(http.StatusOK, {{.Name}})
+	c.JSON(http.StatusOK, {{.SingularName}})
 }
 
-// Delete{{.TitleName}} is delete a {{.Name}}
+// Delete{{.TitleName}} is delete a {{.SingularName}}
 func Delete{{.TitleName}}(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var {{.Name}} models.{{.TitleName}}
-	if err := db.Where("id = ?", c.Param("id")).First(&{{.Name}}).Error; err != nil {
+	var {{.SingularName}} models.{{.TitleName}}
+	if err := db.Where("id = ?", c.Param("id")).First(&{{.SingularName}}).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
 
-	db.Delete(&{{.Name}})
+	db.Delete(&{{.SingularName}})
 
-	c.JSON(http.StatusOK, {{.Name}})
+	c.JSON(http.StatusOK, {{.SingularName}})
 }

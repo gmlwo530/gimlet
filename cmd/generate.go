@@ -1,3 +1,5 @@
+package cmd
+
 /*
 Copyright © 2020 CHOI HEE JAE <gmlwo530@gmail.com>
 
@@ -13,9 +15,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
 
 import (
+	"errors"
 	"fmt"
 	"go/build"
 	"path/filepath"
@@ -27,33 +29,40 @@ import (
 	"bytes"
 
 	"github.com/spf13/cobra"
+
+	"github.com/gmlwo530/gimlet/common"
+	"github.com/jinzhu/inflection"
 )
 
 //Controller is struct
 type Controller struct {
-	Name      string
-	TitleName string
+	Name         string
+	SingularName string
+	TitleName    string
 }
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate controller [Controller Name]",
+	Use:   "generate controller [controller name]",
 	Short: "Generate file",
 	Long:  `Generate file`,
-	Args:  cobra.RangeArgs(2, 2),
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
-
-		if args[0] == "controller" {
-			generateController(args[1])
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 2 {
+			return errors.New("require 2 arguments")
 		}
-	},
-}
 
-func checkErr(e error) {
-	if e != nil {
-		panic(e)
-	}
+		if args[0] != "controller" {
+			return errors.New("first argument is to be controller")
+		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		controller := generateController(args[1])
+		fmt.Println("Generate", controller.Name+" controller...")
+
+		generateControllerFile(controller)
+		fmt.Println("Done")
+	},
 }
 
 func convControllerTemplateToString(controller Controller) string {
@@ -61,8 +70,8 @@ func convControllerTemplateToString(controller Controller) string {
 
 	importPath := "github.com/gmlwo530/gimlet"
 	p, err := build.Default.Import(importPath, "", build.FindOnly)
+	common.CheckErr(err)
 
-	checkErr(err)
 	templateDir := filepath.Join(p.Dir, "templates")
 
 	t := template.Must(template.ParseGlob(templateDir + "/controller.tmpl"))
@@ -72,22 +81,30 @@ func convControllerTemplateToString(controller Controller) string {
 	return tpl.String()
 }
 
-func generateController(controllerName string) {
+func generateController(inputControllerName string) Controller {
+	controllerName := strings.ToLower(inputControllerName)
+
+	controllerName = inflection.Plural(controllerName)
+	singularControllerName := inflection.Singular(controllerName)
+
+	return Controller{Name: controllerName, SingularName: singularControllerName, TitleName: strings.Title(singularControllerName)}
+}
+
+func generateControllerFile(controller Controller) {
 	controllerDirName := "controllers"
-	controller := Controller{Name: controllerName, TitleName: strings.Title(controllerName)}
 
 	if _, err := os.Stat(controllerDirName); os.IsNotExist(err) {
 		err = os.Mkdir(controllerDirName, 0755)
-		checkErr(err)
+		common.CheckErr(err)
 	}
 
 	f, err := os.Create(fmt.Sprintf("./%s/%s.go", controllerDirName, controller.Name))
-	checkErr(err)
+	common.CheckErr(err)
 
 	defer f.Close()
 
 	var _, err1 = f.WriteString(convControllerTemplateToString(controller))
-	checkErr(err1)
+	common.CheckErr(err1)
 }
 
 func init() {
